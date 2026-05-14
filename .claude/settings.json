@@ -1,0 +1,45 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "bash hooks/pre_task.sh" },
+          { "type": "command", "command": "bash hooks/classify_task.sh" },
+          { "type": "command", "command": "bash hooks/budget_guard.sh" },
+          { "type": "command", "command": "bash hooks/log_tool.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "bash hooks/post_task.sh" },
+          { "type": "command", "command": "bash hooks/log_tool.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "bash hooks/on_error.sh" }
+        ]
+      }
+    ]
+  },
+  "budget": {
+    "daily_call_limit": 500,
+    "mode": "warn",
+    "_note": "Override via env: CLAUDE_DAILY_CALL_LIMIT and CLAUDE_BUDGET_MODE=warn|halt"
+  },
+  "memory": {
+    "checkpoint_on_task_complete": true,
+    "stale_facts_after_days": 30
+  },
+  "agents": {
+    "default_model": "claude-sonnet-4-6",
+    "orchestrator_model": "claude-opus-4-7"
+  }
+}
