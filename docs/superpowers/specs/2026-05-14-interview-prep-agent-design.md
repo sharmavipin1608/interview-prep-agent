@@ -222,7 +222,7 @@ com.yourname.interviewprep/
     Message.java
     Score.java
     WeakArea.java
-  dto/
+  dto/                     -- all DTOs are Java records
     ResearchRequest.java
     CompanyBrief.java
     StartSessionRequest.java
