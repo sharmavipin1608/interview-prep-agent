@@ -14,3 +14,11 @@ logs/traces/
 
 # OS
 .DS_Store
+
+# Java/Gradle build artifacts
+.gradle/
+build/
+*.class
+.env
+.env.local
+application-*.local.yml
