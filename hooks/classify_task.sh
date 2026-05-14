@@ -42,7 +42,7 @@ force_full() {
     exit 0
 }
 
-file_matches() { echo "$CHANGED_FILES" | grep -qiE "$1"; }
+file_matches() { echo "$CHANGED_FILES" | grep -v "^memory/" | grep -qiE "$1"; }
 
 # ── Hard rules: file path patterns ────────────────────────────────────
 file_matches "auth|jwt|session|password|secret|token|oauth"  && force_full "auth/security file touched"

@@ -8,46 +8,68 @@ Last reviewed: 2026-05-14
 ## Code Style
 
 ### Naming
-- Variables and functions: snake_case
-- Classes: PascalCase
-- Constants: UPPER_SNAKE_CASE
-- Private methods: _leading_underscore
-- TODO: Add language-specific naming rules for Java 21, Spring Boot 3, Spring AI, Oracle Cloud Free Tier
+- Variables and methods: camelCase (e.g., `sessionId`, `getInterviewSession()`)
+- Classes and interfaces: PascalCase (e.g., `InterviewSession`, `SessionRepository`)
+- Constants: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
+- Packages: all lowercase, dot-separated (e.g., `com.vipinsharma.interviewprep.service`)
+- Spring beans: camelCase, no `Impl` suffix unless interface and implementation coexist in the same package
+- Test methods: `methodName_scenario_expectedBehavior()` (e.g., `getSession_whenNotFound_throwsException()`)
 
 ### Formatting
 - Indentation: 4 spaces (no tabs)
 - Max line length: 100 characters
 - Blank lines between top-level definitions: 2
-- TODO: Specify formatter (black, prettier, gofmt, etc.) and version
+- Formatter: Google Java Format (enforced via `spotless` Gradle plugin) or standard IntelliJ Java formatting — both produce equivalent output at these settings
+- Gradle DSL: Groovy (not Kotlin); build files use `build.gradle`, not `build.gradle.kts`
 
 ### Imports
-- Standard library first, third-party second, local last
-- Alphabetical within each group
-- No wildcard imports (`from x import *`)
-- TODO: Add project-specific import conventions
+- Import ordering (IntelliJ / Google Java Format standard):
+  1. `static` imports (alphabetical)
+  2. `java.*`
+  3. `javax.*`
+  4. `org.*`
+  5. `com.*` (third-party, then project-local)
+- No wildcard imports (e.g., never `import java.util.*`)
+- Remove all unused imports before committing
 
 ---
 
 ## Architecture
 
 ### Folder Structure
-- Source code: `src/` or project root depending on stack
-- Tests: `tests/` mirroring source structure
-- Documentation: `docs/`
-- Scripts: `scripts/`
-- TODO: Define actual folder structure for Java 21, Spring Boot 3, Spring AI, Oracle Cloud Free Tier
+- Source layout under `src/main/java/com/vipinsharma/interviewprep/`:
+  - `api/`        — REST controllers (`@RestController`)
+  - `service/`    — business logic (`@Service`)
+  - `agent/`      — Spring AI agents and their `tools/` sub-package
+  - `model/`      — JPA entities (`@Entity`)
+  - `dto/`        — Java records used as request/response DTOs
+  - `config/`     — Spring configuration classes (`@Configuration`)
+  - `repository/` — Spring Data JPA repositories (`@Repository`)
+- Resources: `src/main/resources/` (application.yml, SQL migrations, etc.)
+- Tests: `src/test/java/` — mirrors the source package tree exactly
+- Deployment: `deploy/` — systemd unit files and Caddy configuration
+- CI/CD: `.github/workflows/`
 
 ### Patterns
 - Prefer composition over inheritance
 - One responsibility per module/file
 - Interfaces before implementations
-- TODO: Define stack-specific patterns (e.g., repository pattern, service layer, etc.)
+- **Repository pattern:** all database access goes through Spring Data JPA repositories; no raw SQL in service classes
+- **Service layer orchestration:** `@Service` classes orchestrate calls to repositories and Spring AI agents; they own transaction boundaries (`@Transactional` at the service method level, never on controllers)
+- **Agent isolation:** Spring AI agents in `agent/` never call each other directly — data flows through the service layer
+- **DTOs are Java records:** request and response objects are immutable `record` types in `dto/`; JPA entities are never exposed directly in API responses
+- **Constructor injection only:** use constructor injection for all Spring beans (enables `final` fields and simplifies testing); never use `@Autowired` field injection
+- **API response envelope:** every REST response is wrapped in a generic `ApiResponse<T>` record: `{ "data": T, "error": null, "meta": { "timestamp": "..." } }`
 
 ### What to Avoid
 - God objects / monolithic files
 - Tight coupling between layers
 - Global mutable state
-- TODO: Add project-specific anti-patterns to avoid
+- `@Autowired` field injection — use constructor injection instead
+- `@Transactional` on `@RestController` classes — transaction boundaries belong in the service layer
+- `Optional.get()` without a prior `isPresent()` check — use `orElseThrow()` or `orElse()` instead
+- Exposing JPA entities directly as API responses — always map to a DTO record first
+- Agents calling other agents directly — route through service classes to keep agents decoupled
 
 ---
 
@@ -56,19 +78,21 @@ Last reviewed: 2026-05-14
 ### Unit Tests
 - Every public function has a unit test
 - Tests are co-located in `tests/` mirroring source structure
-- Test naming: `test_<function_name>_<scenario>`
+- Test naming: `methodName_scenario_expectedBehavior()` (e.g., `getSession_whenNotFound_throwsException()`)
 - One assertion per test (prefer this over multi-assertion tests)
 - TDD: write failing test first, then implement
 
 ### Integration Tests
 - Cover cross-layer flows (API → service → database)
 - Use real database/external services in integration tests — no mocks
-- Tag with `@pytest.mark.integration` or equivalent
+- Annotate with `@SpringBootTest` and `@Tag("integration")`
+- Use H2 in-memory database for local integration tests; PostgreSQL dialect used in CI
 
 ### Coverage
 - Unit test coverage target: 80% minimum
 - No coverage exceptions without a comment explaining why
-- TODO: Set actual coverage targets and enforcement (CI check, pre-commit hook)
+- 80% minimum line coverage, enforced by the Gradle JaCoCo plugin (`jacocoTestCoverageVerification` task fails the build if coverage drops below threshold)
+- Coverage report generated on every `./gradlew test` run; CI blocks merge if the task fails
 
 ### What Not to Test
 - Framework internals
@@ -106,17 +130,29 @@ Last reviewed: 2026-05-14
 ## API / Interface Design
 
 ### Request / Response Structure
-- All responses: `{ "data": ..., "error": null, "meta": { "timestamp": ... } }`
-- Errors: `{ "data": null, "error": { "code": "...", "message": "..." }, "meta": ... }`
-- TODO: Define actual response envelope for this project
+- All API responses use the generic `ApiResponse<T>` Java record:
+  ```json
+  { "data": <payload or null>, "error": null, "meta": { "timestamp": "2026-05-14T10:00:00Z" } }
+  ```
+- Error responses set `data` to `null` and populate `error`:
+  ```json
+  { "data": null, "error": { "code": "SESSION_NOT_FOUND", "message": "Session 42 does not exist" }, "meta": { "timestamp": "..." } }
+  ```
+- HTTP status codes follow REST semantics (200, 201, 400, 404, 422, 500); the envelope error field is supplementary
 
 ### Error Codes
-- Use descriptive snake_case codes: `invalid_input`, `not_found`, `unauthorized`
-- Always include a human-readable message alongside the code
-- TODO: Define the full error code enum for this project
+- Error codes are defined in the `ErrorCode` enum (UPPER_SNAKE_CASE, not snake_case):
+  - `COMPANY_NOT_FOUND`
+  - `SESSION_NOT_FOUND`
+  - `SESSION_ALREADY_COMPLETED`
+  - `RESEARCH_FAILED`
+  - `INVALID_REQUEST`
+- Every error response includes both the `ErrorCode` value and a human-readable `message` string
+- New codes must be added to the `ErrorCode` enum — do not use raw strings for error codes
 
 ### Versioning
-- TODO: Decide API versioning strategy (URL path, header, none)
+- URL path versioning: all endpoints are prefixed with `/api/v1/` (e.g., `/api/v1/sessions`, `/api/v1/companies`)
+- A version bump to `/api/v2/` is required for any breaking change to request/response contracts
 
 ---
 
@@ -160,4 +196,6 @@ Orchestrator reviews and adds to this file if appropriate.
 - Short sentences
 - Active voice
 - Examples over descriptions
-- TODO: Define doc tooling (Sphinx, JSDoc, Godoc, etc.)
+- API documentation: Springdoc OpenAPI (dependency `springdoc-openapi-starter-webmvc-ui`)
+- Swagger UI available at `/swagger-ui.html` in all non-production profiles
+- Annotate controllers with `@Operation` and `@ApiResponse` from `io.swagger.v3.oas.annotations` for accurate spec generation

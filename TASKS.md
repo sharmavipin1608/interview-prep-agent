@@ -18,7 +18,7 @@ Task description — what needs to be done and why.
 ## Tasks
 
 ### [TASK-001] Review and fill in CONVENTIONS.md
-**Status:** pending
+**Status:** done
 **Priority:** high
 **Agent:** writer
 **Tags:** [conventions]
@@ -26,7 +26,7 @@ Task description — what needs to be done and why.
 Review the generated CONVENTIONS.md and fill in all `# TODO` markers with project-specific decisions. This file is a living document — the reviewer and memory agents will actively maintain it throughout the project lifecycle.
 
 ### [TASK-002] Populate memory/core.md
-**Status:** pending
+**Status:** done
 **Priority:** high
 **Agent:** writer
 **Tags:** [core]
