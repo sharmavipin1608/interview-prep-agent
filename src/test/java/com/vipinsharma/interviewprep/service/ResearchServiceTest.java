@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vipinsharma.interviewprep.agent.ResearchAgent;
 import com.vipinsharma.interviewprep.dto.CompanyBrief;
+import com.vipinsharma.interviewprep.dto.ResearchResponse;
 import com.vipinsharma.interviewprep.model.Session;
 import com.vipinsharma.interviewprep.repository.SessionRepository;
 
@@ -41,15 +43,21 @@ class ResearchServiceTest {
         sessionRepository = mock(SessionRepository.class);
         objectMapper = new ObjectMapper();
         service = new ResearchService(researchAgent, sessionRepository, objectMapper);
+
+        when(sessionRepository.save(any(Session.class))).thenAnswer(inv -> {
+            Session s = inv.getArgument(0);
+            s.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+            return s;
+        });
     }
 
     @Test
     void research_whenValidInputs_returnsCompanyBrief() {
         when(researchAgent.research(anyString(), anyString(), anyString())).thenReturn(STRIPE_BRIEF);
 
-        CompanyBrief result = service.research("Stripe", "Software Engineer", "Build APIs");
+        ResearchResponse result = service.research("Stripe", "Software Engineer", "Build APIs");
 
-        assertThat(result.companyName()).isEqualTo("Stripe");
+        assertThat(result.companyBrief().companyName()).isEqualTo("Stripe");
     }
 
     @Test

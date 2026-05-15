@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vipinsharma.interviewprep.agent.ResearchAgent;
 import com.vipinsharma.interviewprep.dto.CompanyBrief;
+import com.vipinsharma.interviewprep.dto.ResearchResponse;
 import com.vipinsharma.interviewprep.model.Session;
 import com.vipinsharma.interviewprep.repository.SessionRepository;
 
@@ -27,7 +28,7 @@ public class ResearchService {
         this.objectMapper = objectMapper;
     }
 
-    public CompanyBrief research(String companyName, String jobTitle, String jobDescription) {
+    public ResearchResponse research(String companyName, String jobTitle, String jobDescription) {
         if (!StringUtils.hasText(companyName)) {
             throw new IllegalArgumentException("companyName must not be null or blank");
         }
@@ -53,8 +54,8 @@ public class ResearchService {
         session.setJobTitle(jobTitle);
         session.setCompanyBrief(briefJson);
 
-        sessionRepository.save(session);
+        Session saved = sessionRepository.save(session);
 
-        return brief;
+        return new ResearchResponse(saved.getId(), brief);
     }
 }
