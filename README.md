@@ -2,7 +2,7 @@
 
 AI agent that researches companies and simulates mock technical interviews. Given a company name and job description, it researches the company, conducts a multi-turn mock interview, and delivers scored coaching feedback.
 
-**Stack:** Java 21, Spring Boot 3.3.4, Spring AI 1.0.0, Groq (llama-3.3-70b-versatile), PostgreSQL, Oracle Cloud Free Tier
+**Stack:** Java 21, Spring Boot 3.3.4, Spring AI 1.0.0, React 18 + Vite 5, Groq (llama-3.3-70b-versatile), PostgreSQL, Oracle Cloud Free Tier
 
 ---
 
@@ -65,6 +65,21 @@ flowchart TD
 
 ---
 
+## UI
+
+A React 18 + Vite SPA is bundled into the Spring Boot JAR and served at `/`. No separate frontend server is needed in production.
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Dashboard | `/` | Session stats, recent sessions table, top weak areas |
+| New Interview | `/new` | Research form → company brief preview → start session |
+| Interview | `/sessions/:id` | Chat interface with company brief panel |
+| Results | `/sessions/:id/results` | Score, coach feedback, weak areas |
+
+Dark/light mode toggle and mobile-responsive layout included.
+
+---
+
 ## API Endpoints
 
 | Method | Path | Description |
@@ -75,6 +90,7 @@ flowchart TD
 | POST | `/api/v1/sessions/{id}/evaluate` | Trigger coaching feedback and scoring |
 | GET  | `/api/v1/sessions/{id}` | Fetch session detail |
 | GET  | `/api/v1/sessions` | List all sessions |
+| GET  | `/api/v1/sessions/weak-areas` | Top 5 weak areas across all sessions |
 
 All responses are wrapped in `ApiResponse<T>`: `{ data, error: { code, message }, meta: { timestamp } }`.
 
@@ -86,6 +102,7 @@ Interactive API docs available at `/swagger-ui/index.html`.
 
 ### Prerequisites
 - Java 21
+- Node.js 20
 - Gradle 8.10 (or use the included `./gradlew` wrapper)
 
 ### Environment variables
@@ -94,16 +111,23 @@ export GROQ_API_KEY=gsk_...
 export TAVILY_API_KEY=tvly-...
 ```
 
-### Run
+### Run backend
 ```bash
 ./gradlew bootRun
 # App starts on http://localhost:8080 with H2 in-memory DB
 ```
 
+### Run frontend (dev mode with hot reload)
+```bash
+cd frontend && npm install && npm run dev
+# Vite dev server on http://localhost:5173
+# API calls are proxied to http://localhost:8080
+```
+
 ### Test
 ```bash
-./gradlew test
-# 110 tests, all pass
+./gradlew test          # backend (Java)
+cd frontend && npm test # frontend (Vitest)
 ```
 
 ---
@@ -173,10 +197,19 @@ Push to `master` — GitHub Actions runs tests, builds a Docker image, streams i
 
 ```
 interview-prep-agent/
+├── frontend/                          # React + Vite SPA
+│   ├── src/
+│   │   ├── api/client.js              # Axios + ApiResponse unwrapper
+│   │   ├── hooks/                     # TanStack Query hooks
+│   │   ├── components/                # Layout, Sidebar, Topbar, shared UI
+│   │   ├── pages/                     # Dashboard, NewInterview, Interview, Results
+│   │   └── styles/                    # CSS custom properties (light/dark) + global
+│   ├── package.json
+│   └── vite.config.js                 # Dev proxy → :8080; build → src/main/resources/static
 ├── src/
 │   ├── main/java/com/vipinsharma/interviewprep/
 │   │   ├── agent/          # ResearchAgent, InterviewerAgent, CoachAgent
-│   │   ├── api/            # REST controllers + GlobalExceptionHandler
+│   │   ├── api/            # REST controllers + SpaFallbackController + GlobalExceptionHandler
 │   │   ├── config/         # AiConfig (ChatClient beans)
 │   │   ├── dto/            # Java records (request/response DTOs)
 │   │   ├── model/          # JPA entities (Session, Message, Score, WeakArea)
@@ -186,7 +219,8 @@ interview-prep-agent/
 │       ├── application.yml
 │       ├── application-dev.yml
 │       ├── application-test.yml
-│       └── application-prod.yml
+│       ├── application-prod.yml
+│       └── static/                    # Vite build output (served by Spring Boot)
 ├── deploy/
 │   ├── Caddyfile                      # Caddy v2 reverse proxy config
 │   ├── setup-vm.sh                    # One-shot VM setup script
@@ -194,5 +228,6 @@ interview-prep-agent/
 ├── Dockerfile
 ├── docker-compose.yml
 └── .github/workflows/
-    └── deploy.yml                     # CI/CD pipeline
+    ├── ci.yml                         # PR checks: frontend + backend tests
+    └── deploy.yml                     # master push: build frontend → bootJar → deploy
 ```
