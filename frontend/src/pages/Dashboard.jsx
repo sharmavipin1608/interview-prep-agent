@@ -60,8 +60,8 @@ export default function Dashboard() {
             <div className={styles.date}>
               {new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </div>
-            <div><StatusPill status={s.status} /></div>
-            <div><ScoreBar score={s.overallScore} /></div>
+            <div className={styles.cell}><StatusPill status={s.status} /></div>
+            <div className={styles.scoreCell}><ScoreBar score={s.overallScore} /></div>
             <div className={styles.action}>{s.status === 'ACTIVE' ? 'Continue →' : 'Review →'}</div>
           </div>
         ))}
