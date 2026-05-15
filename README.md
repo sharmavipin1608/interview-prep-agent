@@ -6,6 +6,65 @@ AI agent that researches companies and simulates mock technical interviews. Give
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart TD
+    Client(["Client"])
+
+    subgraph API ["REST API Layer"]
+        RC["ResearchController\nPOST /api/v1/research"]
+        SC["SessionController\n/api/v1/sessions/**"]
+    end
+
+    subgraph Services ["Service Layer"]
+        RS["ResearchService"]
+        ISS["InterviewSessionService"]
+        CS["ChatService"]
+        SS["ScoringService"]
+        SHS["SessionHistoryService"]
+    end
+
+    subgraph Agents ["Agent Layer (Spring AI)"]
+        RA["ResearchAgent\n(autonomous researcher)"]
+        IA["InterviewerAgent\n(stateful multi-turn)"]
+        CA["CoachAgent\n(stateless evaluator)"]
+    end
+
+    subgraph External ["External APIs"]
+        OAI["OpenAI\ngpt-4o-mini"]
+        TAV["Tavily Search API"]
+    end
+
+    subgraph DB ["Persistence"]
+        PG[("PostgreSQL\n(prod)")]
+        H2[("H2\n(dev/test)")]
+    end
+
+    Client --> RC
+    Client --> SC
+    RC --> RS
+    SC --> ISS
+    SC --> CS
+    SC --> SS
+    SC --> SHS
+    RS --> RA
+    CS --> IA
+    SS --> CA
+    RA -->|tool call| TAV
+    RA --> OAI
+    IA --> OAI
+    CA --> OAI
+    RS --> PG
+    ISS --> PG
+    CS --> PG
+    SS --> PG
+    SHS --> PG
+    PG -. dev/test .-> H2
+```
+
+---
+
 ## API Endpoints
 
 | Method | Path | Description |
