@@ -1,0 +1,5 @@
+.card { padding: 18px 20px; }
+.label { font-size: 12px; color: var(--text3); font-weight: 500; margin-bottom: 8px; }
+.value { font-size: 28px; font-weight: 700; color: var(--text1); line-height: 1; }
+.sub  { font-size: 12px; color: #10b981; margin-top: 6px; font-weight: 500; }
+.warn { color: #f59e0b; }
