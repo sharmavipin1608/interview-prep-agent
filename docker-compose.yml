@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: interviewprepdb
+      POSTGRES_DB: interviewdb
       POSTGRES_USER: interviewprep
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
