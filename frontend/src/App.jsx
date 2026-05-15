@@ -3,9 +3,7 @@ import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import NewInterview from './pages/NewInterview'
 import Interview from './pages/Interview'
-
-const Placeholder = ({ name }) => <div style={{ padding: 24 }}>{name}</div>
-const Results      = () => <Placeholder name="Results" />
+import Results from './pages/Results'
 
 export default function App() {
   return (
