@@ -1,15 +1,14 @@
 # Session Checkpoint
 
-_Written by the memory agent after every task. A new Claude session reads this first._
+## Status: COMPLETE
+All 17 IMPL tasks done. 110 tests passing. Project feature-complete as of 2026-05-14.
 
-**Last updated:** 2026-05-14
-**Last completed task:** TASK-001 — Fill CONVENTIONS.md (Writer agent)
+## Git log (latest 5)
+- 57c3cc5 deploy: add systemd unit and Caddyfile for Oracle VM (IMPL-016)
+- 840f94c fix(ci): replace StrictHostKeyChecking=no with known_hosts and use printf for SSH key
+- aa0e110 ci: add GitHub Actions deploy workflow (IMPL-015)
+- 630c8f3 feat: add REST controllers with ApiResponse wrapper and GlobalExceptionHandler (IMPL-014)
+- 4bac983 feat: add SessionHistoryService for session listing and weak area aggregation (IMPL-013)
 
-## Current State
-Project conventions finalized. CONVENTIONS.md fully filled in with Java 21 / Spring Boot 3 / Spring AI / Gradle-specific decisions. Implementation has not started yet. memory/facts.md populated with all key conventions, API, testing, and architecture decisions.
-
-## Open Questions
-none
-
-## Next Task
-Task 1 of implementation plan — Gradle project setup and application bootstrap (TASK-002 in queue is memory/core.md population; check TASKS.md for implementation plan task ordering)
+## Next steps
+Production deployment (see scratchpad.md for checklist).

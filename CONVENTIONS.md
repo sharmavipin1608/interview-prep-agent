@@ -26,7 +26,7 @@ Last reviewed: 2026-05-14
 - Import ordering (IntelliJ / Google Java Format standard):
   1. `static` imports (alphabetical)
   2. `java.*`
-  3. `javax.*`
+  3. `jakarta.*` (Jakarta EE / Spring Framework 6+ replacements for javax.*)
   4. `org.*`
   5. `com.*` (third-party, then project-local)
 - No wildcard imports (e.g., never `import java.util.*`)
