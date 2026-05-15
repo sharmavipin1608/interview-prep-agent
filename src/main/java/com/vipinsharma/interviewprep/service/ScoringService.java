@@ -81,6 +81,9 @@ public class ScoringService {
 
         scoreRepository.save(score);
 
+        session.setStatus("COMPLETED");
+        sessionRepository.save(session);
+
         return feedback;
     }
 }

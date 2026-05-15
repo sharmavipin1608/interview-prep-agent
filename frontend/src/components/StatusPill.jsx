@@ -1,6 +1,7 @@
 const map = {
-  ACTIVE:    { label: 'In Progress', cls: 'pill-active' },
-  COMPLETED: { label: 'Scored',      cls: 'pill-scored' },
+  ACTIVE:       { label: 'In Progress', cls: 'pill-active' },
+  INTERVIEWING: { label: 'In Progress', cls: 'pill-active' },
+  COMPLETED:    { label: 'Scored',      cls: 'pill-scored' },
 }
 
 export default function StatusPill({ status }) {
