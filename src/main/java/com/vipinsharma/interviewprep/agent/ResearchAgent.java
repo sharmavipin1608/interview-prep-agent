@@ -71,9 +71,14 @@ public class ResearchAgent {
                 jobDescription);
     }
 
+    private static String stripMarkdownFences(String text) {
+        if (text == null) return null;
+        return text.replaceAll("(?s)^```[a-zA-Z]*\\n?", "").replaceAll("(?s)```$", "").strip();
+    }
+
     private CompanyBrief parseCompanyBrief(String companyName, String json) {
         try {
-            ParsedBrief parsed = objectMapper.readValue(json, ParsedBrief.class);
+            ParsedBrief parsed = objectMapper.readValue(stripMarkdownFences(json), ParsedBrief.class);
             return new CompanyBrief(
                     companyName,
                     parsed.companySummary(),

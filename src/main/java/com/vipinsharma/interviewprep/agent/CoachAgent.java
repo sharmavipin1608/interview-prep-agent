@@ -68,9 +68,14 @@ public class CoachAgent {
                 historyText);
     }
 
+    private static String stripMarkdownFences(String text) {
+        if (text == null) return null;
+        return text.replaceAll("(?s)^```[a-zA-Z]*\\n?", "").replaceAll("(?s)```$", "").strip();
+    }
+
     private SessionFeedback parseFeedback(UUID sessionId, String json) {
         try {
-            ParsedFeedback parsed = objectMapper.readValue(json, ParsedFeedback.class);
+            ParsedFeedback parsed = objectMapper.readValue(stripMarkdownFences(json), ParsedFeedback.class);
             return new SessionFeedback(
                     sessionId,
                     parsed.overallScore(),
