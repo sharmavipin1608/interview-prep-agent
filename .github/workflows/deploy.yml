@@ -47,18 +47,17 @@ jobs:
       - name: Configure SSH for deployment
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ORACLE_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.ORACLE_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.ORACLE_SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
       - name: Deploy to Oracle VM
         run: |
-          # Copy JAR to remote server
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key \
+          scp -i ~/.ssh/deploy_key \
             build/libs/interview-prep-agent-0.0.1-SNAPSHOT.jar \
             ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}:${{ secrets.ORACLE_DEPLOY_PATH }}
 
-          # SSH in and restart the service
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key \
+          ssh -i ~/.ssh/deploy_key \
             ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }} \
             "systemctl restart interview-prep-agent"
 
