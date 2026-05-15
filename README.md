@@ -2,7 +2,7 @@
 
 AI agent that researches companies and simulates mock technical interviews. Given a company name and job description, it researches the company, conducts a multi-turn mock interview, and delivers scored coaching feedback.
 
-**Stack:** Java 21, Spring Boot 3.3.4, Spring AI 1.0.0, PostgreSQL, Oracle Cloud Free Tier
+**Stack:** Java 21, Spring Boot 3.3.4, Spring AI 1.0.0, Groq (llama-3.3-70b-versatile), PostgreSQL, Oracle Cloud Free Tier
 
 ---
 
@@ -32,7 +32,7 @@ flowchart TD
     end
 
     subgraph External ["External APIs"]
-        OAI["OpenAI\ngpt-4o-mini"]
+        GROQ["Groq\nllama-3.3-70b-versatile"]
         TAV["Tavily Search API"]
     end
 
@@ -52,9 +52,9 @@ flowchart TD
     CS --> IA
     SS --> CA
     RA -->|tool call| TAV
-    RA --> OAI
-    IA --> OAI
-    CA --> OAI
+    RA --> GROQ
+    IA --> GROQ
+    CA --> GROQ
     RS --> PG
     ISS --> PG
     CS --> PG
@@ -78,7 +78,7 @@ flowchart TD
 
 All responses are wrapped in `ApiResponse<T>`: `{ data, error: { code, message }, meta: { timestamp } }`.
 
-Swagger UI is available at `/swagger-ui.html` when the app is running.
+Interactive API docs available at `/swagger-ui/index.html`.
 
 ---
 
@@ -90,7 +90,7 @@ Swagger UI is available at `/swagger-ui.html` when the app is running.
 
 ### Environment variables
 ```bash
-export OPENAI_API_KEY=sk-...
+export GROQ_API_KEY=gsk_...
 export TAVILY_API_KEY=tvly-...
 ```
 
@@ -110,62 +110,32 @@ export TAVILY_API_KEY=tvly-...
 
 ## Production Deployment
 
-The app is designed to run on an **Oracle Cloud Free Tier Ampere A1 VM (ARM64, Ubuntu 22.04)** behind a **Caddy v2** reverse proxy.
+The app runs on an **Oracle Cloud Free Tier Ampere A1 VM (Ubuntu 22.04)** using **Docker Compose** behind a **Caddy v2** reverse proxy.
 
-### 1. GitHub Actions secrets
+### 1. VM setup
 
-Add these secrets to your GitHub repo (`Settings → Secrets → Actions`):
-
-| Secret | Description |
-|--------|-------------|
-| `ORACLE_SSH_PRIVATE_KEY` | SSH private key for the Oracle VM |
-| `ORACLE_SSH_KNOWN_HOSTS` | Output of `ssh-keyscan <your-oracle-vm-ip>` |
-| `ORACLE_HOST` | Public IP or hostname of the Oracle VM |
-| `ORACLE_USER` | SSH username (typically `ubuntu`) |
-| `ORACLE_DEPLOY_PATH` | Remote path for the JAR, e.g. `/opt/interview-prep-agent/` |
-
-### 2. Oracle VM setup
-
-Install dependencies:
+SSH into your VM and run the setup script:
 ```bash
-sudo apt update
-sudo apt install -y openjdk-21-jre-headless postgresql caddy
+curl -fsSL https://raw.githubusercontent.com/sharmavipin1608/interview-prep-agent/master/deploy/setup-vm.sh | bash
 ```
 
-Create the app directory and environment file:
+This installs Docker, Caddy, opens ports 80/443, and creates `/opt/interview-prep-agent/`.
+
+### 2. Create the `.env` file on the VM
+
 ```bash
-sudo mkdir -p /opt/interview-prep-agent
-sudo nano /opt/interview-prep-agent/.env
+nano /opt/interview-prep-agent/.env
 ```
 
-Contents of `.env`:
 ```
-SPRING_PROFILES_ACTIVE=prod
-OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk_...
 TAVILY_API_KEY=tvly-...
-DB_HOST=localhost
-DB_USER=interviewprep
-DB_PASSWORD=<strong-password>
+POSTGRES_PASSWORD=choose-a-strong-password
 ```
 
-Set up PostgreSQL:
-```bash
-sudo -u postgres psql -c "CREATE USER interviewprep WITH PASSWORD '<strong-password>';"
-sudo -u postgres psql -c "CREATE DATABASE interviewprepdb OWNER interviewprep;"
-```
+### 3. Configure Caddy
 
-### 3. Register the systemd service
-
-```bash
-sudo cp deploy/interview-prep-agent.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable interview-prep-agent
-sudo systemctl start interview-prep-agent
-```
-
-### 4. Configure Caddy
-
-Edit `deploy/Caddyfile` — replace `interview-prep.example.com` with your actual domain:
+Edit `deploy/Caddyfile` — replace the domain with yours:
 ```
 your-domain.com {
     reverse_proxy localhost:8080
@@ -173,17 +143,29 @@ your-domain.com {
 }
 ```
 
-Then copy it to the server:
+Copy to the VM and reload:
 ```bash
-sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+scp deploy/Caddyfile ubuntu@<vm-ip>:/tmp/Caddyfile
+ssh ubuntu@<vm-ip> "sudo cp /tmp/Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy"
 ```
 
-Caddy automatically provisions a TLS certificate via Let's Encrypt.
+Caddy automatically provisions a TLS certificate via Let's Encrypt when a domain name is used.
+
+### 4. GitHub Actions secrets
+
+Add these to your repo (`Settings → Secrets → Actions`):
+
+| Secret | Description |
+|--------|-------------|
+| `ORACLE_SSH_PRIVATE_KEY` | SSH private key for the Oracle VM |
+| `ORACLE_SSH_KNOWN_HOSTS` | Output of `ssh-keyscan <your-vm-ip> 2>/dev/null \| grep -v "^#"` |
+| `ORACLE_HOST` | Public IP or hostname of the Oracle VM |
+| `ORACLE_USER` | SSH username (typically `ubuntu`) |
+| `ORACLE_DEPLOY_PATH` | Remote path, e.g. `/opt/interview-prep-agent/` |
 
 ### 5. Deploy
 
-Push to `master` — GitHub Actions runs tests, builds the JAR, scps it to the VM, and restarts the service automatically.
+Push to `master` — GitHub Actions runs tests, builds a Docker image, streams it to the VM, and runs `docker compose up -d` automatically.
 
 ---
 
@@ -206,8 +188,11 @@ interview-prep-agent/
 │       ├── application-test.yml
 │       └── application-prod.yml
 ├── deploy/
-│   ├── interview-prep-agent.service   # systemd unit
-│   └── Caddyfile                      # Caddy v2 reverse proxy
+│   ├── Caddyfile                      # Caddy v2 reverse proxy config
+│   ├── setup-vm.sh                    # One-shot VM setup script
+│   └── interview-prep-agent.service   # systemd unit (alternative to Docker)
+├── Dockerfile
+├── docker-compose.yml
 └── .github/workflows/
     └── deploy.yml                     # CI/CD pipeline
 ```
