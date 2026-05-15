@@ -1,4 +1,4 @@
-interview-prep.example.com {
+163.192.6.212 {
 	reverse_proxy localhost:8080
 
 	header {

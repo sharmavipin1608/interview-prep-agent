@@ -44,22 +44,34 @@ jobs:
       - name: Build JAR
         run: ./gradlew bootJar
 
-      - name: Configure SSH for deployment
+      - name: Build Docker image
+        run: docker build -t interview-prep-agent:latest .
+
+      - name: Save Docker image as tarball
+        run: docker save interview-prep-agent:latest | gzip > interview-prep-agent.tar.gz
+
+      - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.ORACLE_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "${{ secrets.ORACLE_SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy to Oracle VM
+      - name: Copy image and compose file to Oracle VM
         run: |
           scp -i ~/.ssh/deploy_key \
-            build/libs/interview-prep-agent-0.0.1-SNAPSHOT.jar \
-            ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}:${{ secrets.ORACLE_DEPLOY_PATH }}
+            interview-prep-agent.tar.gz \
+            docker-compose.yml \
+            ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}:/opt/interview-prep-agent/
 
+      - name: Load image and restart containers
+        run: |
           ssh -i ~/.ssh/deploy_key \
             ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }} \
-            "systemctl restart interview-prep-agent"
+            "cd /opt/interview-prep-agent && \
+             docker load < interview-prep-agent.tar.gz && \
+             docker compose up -d && \
+             rm interview-prep-agent.tar.gz"
 
       - name: Cleanup SSH key
         if: always()
