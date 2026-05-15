@@ -61,4 +61,9 @@ _Mark outdated entries with [stale] prefix — never delete._
 [deploy] systemd unit EnvironmentFile=/opt/interview-prep-agent/.env — OPENAI_API_KEY, TAVILY_API_KEY, DB creds, SPRING_PROFILES_ACTIVE=prod must be in that file on VM — 2026-05-14
 [deploy] Caddyfile domain placeholder is interview-prep.example.com — must be replaced before first deployment — 2026-05-14
 [build] Full clean build produces 56MB fat JAR: build/libs/interview-prep-agent-0.0.1-SNAPSHOT.jar — 2026-05-14
+[agent] Groq Llama models wrap JSON responses in ```json ... ``` markdown fences despite "return ONLY JSON" instructions — always strip fences before parsing with objectMapper — 2026-05-15
+[agent] ChatClient.Builder is mutable in Spring AI 1.0.0 — defaultSystem() mutates in place; declaring it as a singleton @Bean causes all agents to share the last-initialized system prompt — must use @Scope("prototype") — 2026-05-15
+[config] ddl-auto: validate fails on a fresh PostgreSQL database with no schema — use ddl-auto: update for first run; migrate to Flyway/Liquibase if schema stability becomes important — 2026-05-15
+[build] springdoc-openapi-starter-webmvc-ui:2.6.0 must be added explicitly to build.gradle — it is not transitive from any other dependency — Swagger UI at /swagger-ui/index.html — 2026-05-15
+[deploy] Docker image tarball transferred via scp gets corrupted — stream directly via docker save | ssh ... docker load instead — 2026-05-15
 
