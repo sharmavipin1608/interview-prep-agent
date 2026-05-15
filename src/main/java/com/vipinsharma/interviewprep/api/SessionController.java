@@ -74,4 +74,9 @@ public class SessionController {
     public ApiResponse<List<SessionSummary>> getSessions() {
         return ApiResponse.ok(sessionHistoryService.getSessions());
     }
+
+    @GetMapping("/weak-areas")
+    public ApiResponse<List<String>> getWeakAreas() {
+        return ApiResponse.ok(sessionHistoryService.getTopWeakAreas());
+    }
 }
