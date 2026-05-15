@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vipinsharma.interviewprep.agent.InterviewerAgent;
 import com.vipinsharma.interviewprep.dto.ChatResponse;
+import com.vipinsharma.interviewprep.dto.MessageSummary;
 import com.vipinsharma.interviewprep.dto.CompanyBrief;
 import com.vipinsharma.interviewprep.model.Message;
 import com.vipinsharma.interviewprep.model.Session;
@@ -77,6 +78,13 @@ public class ChatService {
         messageRepository.save(assistantMsg);
 
         return new ChatResponse(reply);
+    }
+
+    public List<MessageSummary> getMessages(UUID sessionId) {
+        return messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)
+                .stream()
+                .map(m -> new MessageSummary(m.getRole(), m.getContent()))
+                .toList();
     }
 
     private CompanyBrief deserializeCompanyBrief(Session session) {
