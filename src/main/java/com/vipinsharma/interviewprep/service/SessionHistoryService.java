@@ -28,7 +28,7 @@ public class SessionHistoryService {
     public List<SessionSummary> getSessions() {
         return sessionRepository.findAll().stream()
                 .map(session -> {
-                    Integer overallScore = scoreRepository.findBySessionId(session.getId())
+                    Integer overallScore = scoreRepository.findFirstBySessionIdOrderByCreatedAtDesc(session.getId())
                             .map(score -> score.getOverallScore())
                             .orElse(null);
                     return new SessionSummary(
