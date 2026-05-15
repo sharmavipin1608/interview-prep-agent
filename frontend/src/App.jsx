@@ -1,9 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
+import Dashboard from './pages/Dashboard'
 
 const Placeholder = ({ name }) => <div style={{ padding: 24 }}>{name}</div>
 
-const Dashboard    = () => <Placeholder name="Dashboard" />
 const NewInterview = () => <Placeholder name="New Interview" />
 const Interview    = () => <Placeholder name="Interview" />
 const Results      = () => <Placeholder name="Results" />
