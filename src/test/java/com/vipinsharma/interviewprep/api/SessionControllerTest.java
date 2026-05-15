@@ -142,4 +142,15 @@ class SessionControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("INVALID_REQUEST"));
     }
+
+    @Test
+    void getWeakAreas_returnsList() throws Exception {
+        when(sessionHistoryService.getTopWeakAreas())
+                .thenReturn(List.of("System Design", "Concurrency"));
+
+        mockMvc.perform(get("/api/v1/sessions/weak-areas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0]").value("System Design"))
+                .andExpect(jsonPath("$.data[1]").value("Concurrency"));
+    }
 }
