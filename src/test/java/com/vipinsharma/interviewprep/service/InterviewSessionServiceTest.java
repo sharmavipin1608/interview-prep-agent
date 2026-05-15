@@ -56,7 +56,7 @@ class InterviewSessionServiceTest {
 
         ArgumentCaptor<Session> captor = ArgumentCaptor.forClass(Session.class);
         verify(sessionRepository).save(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo("INTERVIEWING");
+        assertThat(captor.getValue().getStatus()).isEqualTo("ACTIVE");
     }
 
     @Test
