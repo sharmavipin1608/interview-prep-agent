@@ -1,0 +1,17 @@
+[Unit]
+Description=Interview Prep Agent
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/interview-prep-agent
+ExecStart=/usr/bin/java -jar /opt/interview-prep-agent/interview-prep-agent-0.0.1-SNAPSHOT.jar
+EnvironmentFile=/opt/interview-prep-agent/.env
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
