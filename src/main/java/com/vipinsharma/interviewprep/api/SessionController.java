@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vipinsharma.interviewprep.dto.ApiResponse;
 import com.vipinsharma.interviewprep.dto.ChatRequest;
 import com.vipinsharma.interviewprep.dto.ChatResponse;
+import com.vipinsharma.interviewprep.dto.MessageSummary;
 import com.vipinsharma.interviewprep.dto.SessionFeedback;
 import com.vipinsharma.interviewprep.dto.SessionSummary;
 import com.vipinsharma.interviewprep.dto.StartSessionRequest;
@@ -78,5 +79,10 @@ public class SessionController {
     @GetMapping("/weak-areas")
     public ApiResponse<List<String>> getWeakAreas() {
         return ApiResponse.ok(sessionHistoryService.getTopWeakAreas());
+    }
+
+    @GetMapping("/{id}/messages")
+    public ApiResponse<List<MessageSummary>> getMessages(@PathVariable UUID id) {
+        return ApiResponse.ok(chatService.getMessages(id));
     }
 }

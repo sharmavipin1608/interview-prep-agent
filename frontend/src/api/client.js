@@ -29,4 +29,7 @@ export const chat = (sessionId, message) =>
 export const evaluate = (sessionId) =>
   http.post(`/sessions/${sessionId}/evaluate`).then(unwrap)
 
+export const getMessages = (sessionId) =>
+  http.get(`/sessions/${sessionId}/messages`).then(unwrap)
+
 export default http

@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useChat } from '../hooks/useChat'
+import { useMessages } from '../hooks/useMessages'
 import ChatMessage from '../components/ChatMessage'
 import styles from './Interview.module.css'
+
+const toFrontendRole = (role) => role === 'ASSISTANT' ? 'ai' : 'user'
 
 export default function Interview() {
   const { id } = useParams()
@@ -12,6 +15,13 @@ export default function Interview() {
   const [input, setInput] = useState('')
   const msgsEndRef = useRef(null)
   const chatMutation = useChat(id)
+  const { data: savedMessages } = useMessages(id)
+
+  useEffect(() => {
+    if (savedMessages?.length > 0) {
+      setMessages(savedMessages.map(m => ({ role: toFrontendRole(m.role), content: m.content })))
+    }
+  }, [savedMessages])
 
   useEffect(() => {
     if (msgsEndRef.current && typeof msgsEndRef.current.scrollIntoView === 'function') {
