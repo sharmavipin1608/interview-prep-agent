@@ -50,7 +50,7 @@ class SessionHistoryServiceTest {
     void getSessions_whenOneSession_returnsOneSessionSummary() {
         Session session = buildSession("Stripe", "SWE", "COMPLETED");
         when(sessionRepository.findAll()).thenReturn(List.of(session));
-        when(scoreRepository.findBySessionId(session.getId())).thenReturn(Optional.empty());
+        when(scoreRepository.findFirstBySessionIdOrderByCreatedAtDesc(session.getId())).thenReturn(Optional.empty());
 
         assertThat(sessionHistoryService.getSessions()).hasSize(1);
     }
@@ -61,7 +61,7 @@ class SessionHistoryServiceTest {
         Score score = new Score();
         score.setOverallScore(4);
         when(sessionRepository.findAll()).thenReturn(List.of(session));
-        when(scoreRepository.findBySessionId(session.getId())).thenReturn(Optional.of(score));
+        when(scoreRepository.findFirstBySessionIdOrderByCreatedAtDesc(session.getId())).thenReturn(Optional.of(score));
 
         assertThat(sessionHistoryService.getSessions().get(0).overallScore()).isEqualTo(4);
     }
@@ -70,7 +70,7 @@ class SessionHistoryServiceTest {
     void getSessions_whenSessionHasNoScore_summaryHasNullOverallScore() {
         Session session = buildSession("Stripe", "SWE", "COMPLETED");
         when(sessionRepository.findAll()).thenReturn(List.of(session));
-        when(scoreRepository.findBySessionId(session.getId())).thenReturn(Optional.empty());
+        when(scoreRepository.findFirstBySessionIdOrderByCreatedAtDesc(session.getId())).thenReturn(Optional.empty());
 
         assertThat(sessionHistoryService.getSessions().get(0).overallScore()).isNull();
     }
@@ -79,7 +79,7 @@ class SessionHistoryServiceTest {
     void getSessions_whenOneSession_summaryCompanyNameMatches() {
         Session session = buildSession("Stripe", "SWE", "COMPLETED");
         when(sessionRepository.findAll()).thenReturn(List.of(session));
-        when(scoreRepository.findBySessionId(session.getId())).thenReturn(Optional.empty());
+        when(scoreRepository.findFirstBySessionIdOrderByCreatedAtDesc(session.getId())).thenReturn(Optional.empty());
 
         assertThat(sessionHistoryService.getSessions().get(0).companyName()).isEqualTo("Stripe");
     }

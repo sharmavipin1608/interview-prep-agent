@@ -35,7 +35,7 @@ class ScoreRepositoryTest {
         score.setFeedback("Good performance overall");
         scoreRepository.save(score);
 
-        Optional<Score> found = scoreRepository.findBySessionId(session.getId());
+        Optional<Score> found = scoreRepository.findFirstBySessionIdOrderByCreatedAtDesc(session.getId());
 
         assertThat(found).isPresent();
         assertThat(found.get().getOverallScore()).isEqualTo(85);
