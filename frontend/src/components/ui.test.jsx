@@ -30,8 +30,8 @@ describe('StatusPill', () => {
 
 describe('ScoreBar', () => {
   it('renders score number', () => {
-    render(<ScoreBar score={82} />)
-    expect(screen.getByText('82')).toBeInTheDocument()
+    render(<ScoreBar score={4} />)
+    expect(screen.getByText('4/5')).toBeInTheDocument()
   })
   it('renders dash when score is null', () => {
     render(<ScoreBar score={null} />)

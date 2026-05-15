@@ -34,7 +34,7 @@ public class InterviewSessionService {
         Session session = sessionRepository.findById(companyBriefSessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + companyBriefSessionId));
 
-        session.setStatus("INTERVIEWING");
+        session.setStatus("ACTIVE");
         sessionRepository.save(session);
 
         return companyBriefSessionId;
